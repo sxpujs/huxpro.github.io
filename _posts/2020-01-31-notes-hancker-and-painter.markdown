@@ -1,3 +1,7 @@
+---
+layout: post
+--- 
+
 作者：Paul Graham，是Y Combinator的联合创始人之一，在YC官网上的介绍如下：
 https://www.ycombinator.com/people/
 他的个人网站：http://www.paulgraham.com/
