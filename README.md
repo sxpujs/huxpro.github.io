@@ -1,1 +1,1 @@
-参考黄轩的博客模板: <https://github.com/Huxpro/huxpro.github.io>
+参考黄玄的博客主题: <https://github.com/Huxpro/huxpro.github.io>
