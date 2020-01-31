@@ -1,14 +1,3 @@
----
-layout:     post
-title:      "Hello 2015"
-subtitle:   "Hello World, Hello Blog"
-date:       2015-01-29 12:00:00
-author:     "Hux"
-header-img: "img/post-bg-2015.jpg"
-tags:
-    - Life
----
-
 作者：Paul Graham，是Y Combinator的联合创始人之一，在YC官网上的介绍如下：
 https://www.ycombinator.com/people/
 他的个人网站：http://www.paulgraham.com/
