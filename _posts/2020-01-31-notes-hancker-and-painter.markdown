@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "[读书笔记]黑客与画家 Hackers & Painters"
+title: "《黑客与画家》读书笔记"
 author: "Sxp"
 header-style: text
 tags:
