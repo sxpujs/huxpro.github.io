@@ -50,4 +50,4 @@ record.txt文件示例，第1列是单词，第2列是频率，空格分隔
 日语 3
 ```
 运行后得到如下结果：
-<img src="/img/wordcloud.jpg" height="400px" width="400px">
+<img src="/img/wordcloud.jpg" height="240px" width="400px">
