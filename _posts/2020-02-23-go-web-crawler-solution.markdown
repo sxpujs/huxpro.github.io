@@ -10,9 +10,9 @@ tags:
 
 题目：[Exercise: Web Crawler](https://tour.golang.org/concurrency/10)
 
-直接参考了 https://github.com/golang/tour/blob/master/solutions/webcrawler.go 的实现，不过该代码使用了chan bool来存放子协程是否执行完成，我的代码是使用WaitGroup来让主协程等待子协程执行完成。
+直接参考了 <https://github.com/golang/tour/blob/master/solutions/webcrawler.go> 的实现，不过该代码使用了chan bool来存放子协程是否执行完成，我的代码是使用WaitGroup来让主协程等待子协程执行完成。
 
-完整代码请参考 https://github.com/sxpujs/go-example/blob/master/crawl/web-crawler.go
+完整代码请参考 <https://github.com/sxpujs/go-example/blob/master/crawl/web-crawler.go>
 
 请注意对于WaitGroup的处理参考了[Golang中WaitGroup使用的一点坑](https://liudanking.com/golang/golang-waitgroup-usage/)
 
@@ -39,13 +39,13 @@ func Crawl(url string, depth int, fetcher Fetcher) {
 		return
 	}
 	fmt.Printf("Found: %s %q\n", url, body)
-	wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	for _, u := range urls {
 		wg.Add(1)
-		go func(wg *sync.WaitGroup, url string) {
+		go func(url string) {
+			defer wg.Done()
 			Crawl(url, depth-1, fetcher)
-			wg.Done()
-		}(wg, u)
+		}(u)
 	}
 	wg.Wait()
 }
