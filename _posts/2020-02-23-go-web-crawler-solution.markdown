@@ -14,8 +14,6 @@ tags:
 
 完整代码请参考 <https://github.com/sxpujs/go-example/blob/master/crawl/web-crawler.go>
 
-请注意对于WaitGroup的处理参考了[Golang中WaitGroup使用的一点坑](https://liudanking.com/golang/golang-waitgroup-usage/)
-
 相对原程序增加的代码如下：
 ```go
 var fetched = struct {
