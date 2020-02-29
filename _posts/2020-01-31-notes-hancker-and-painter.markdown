@@ -4,7 +4,7 @@ title: "《黑客与画家》读书笔记"
 author: "Sxp"
 header-style: text
 tags:
-  - reading-notes
+  - 读书笔记
 ---
 
 作者：Paul Graham，是Y Combinator的联合创始人之一，在YC官网上的介绍如下：
