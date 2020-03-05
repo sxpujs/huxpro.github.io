@@ -48,35 +48,6 @@ xxx/logic.getFeatureMap(0xbde540, 0xc4214e9410, 0xc422561700, 0x4, 0x4, 0x210003
 	xxx/calc_plan.go:114 +0x4af fp=0xc420c911f8 sp=0xc420c90fd0 pc=0x9cd4df
 ```
 
-#### xxx/custom.go的85行
-
-> if jsonParamsByte, e := json.Marshal(params); e == nil {
-
-完整函数如下：
-```go
-func (cus *FeatureClient) BuildKeyList(domain string, keys []string, params map[string]string) (featureKeys []string, err error) {
-	var jsonParams string
-	if params == nil || len(params) == 0 {
-		jsonParams = "{}"
-	}
-	if jsonParamsByte, e := json.Marshal(params); e == nil { // 85行
-		jsonParams = string(jsonParamsByte)
-	} else {
-		return nil, e
-	}
-	......
-}
-```
-
-即json.Marshal(params)出错了，错误原因是：concurrent map iteration and map write，map并发读写异常服务崩溃，然后找到下游的调用方。
-
-#### xxx/dao.go文件中的42行：
-```go
-func BuildKeyList(domain string, keys []string, params map[string]string) (featureKeys []string, err error) {
-	return Client.BuildKeyList(domain, keys, params) // 42行
-}
-```
-
 #### xxx/calc_plan.go文件的114行：
 ```
 func getFeatureMap(ctx context.Context, filters []*model.FiltersType, driverId int64) map[string]string {
@@ -108,3 +79,45 @@ func DeepCopyMap(params map[string]string) map[string]string {
 #### 调用深拷贝实现
 
 把```param := filterRule.FilterMap```修改为 ```param := DeepCopyMap(filterRule.FilterMap)```
+
+## 一个简单的模拟示例
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+)
+
+func main() {
+
+	m := map[string]string{
+		"name": "andy",
+		"age":  "30",
+	}
+
+	write := make(chan bool)
+	go func() {
+		for i := 0; i < 10000; i++ {
+			m["idx"] = strconv.Itoa(i)
+		}
+		write <- true
+	}()
+
+	read := make(chan bool)
+	go func() {
+		for i := 0; i < 10000; i++ {
+			json.Marshal(m)
+		}
+		read <- true
+	}()
+
+	<-write
+	<-read
+
+	fmt.Println("Finish")
+}
+```
+
+执行上述代码，很容易报错：fatal error: concurrent map iteration and map write
