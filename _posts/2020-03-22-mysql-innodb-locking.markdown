@@ -12,14 +12,14 @@ tags:
 本文基于mysql 8.0，官方手册: <https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html>，同时参考了[mysql锁机制详解](https://www.cnblogs.com/volcano-liu/p/9890832.html)
 
 主要内容如下：
-1. 共享锁和排他锁(Shared and Exclusive Locks)
-2. 意向锁(Intention Locks)
-3. 记录锁(Record Locks)
-4. 间隙锁(Gap Locks)
-5. 邻键锁(Next-Key Locks)
-6. 插入意向锁(Insert Intention Locks)
-7. 自增锁(AUTO-INC Locks)
-8. 空间索引的谓词锁(Predicate Locks for Spatial Indexes)
+- [共享锁和排他锁(Shared and Exclusive Locks)](#共享锁和排他锁shared-and-exclusive-locks)
+- [意向锁(Intention Locks)](#意向锁intention-locks)
+- [记录锁(Record Locks)](#记录锁record-locks)
+- [间隙锁(Gap Locks)](#间隙锁gap-locks)
+- [邻键锁(Next-Key Locks)](#邻键锁next-key-locks)
+- [插入意向锁(Insert Intention Locks)](#插入意向锁insert-intention-locks)
+- [自增锁(AUTO-INC Locks)](#自增锁auto-inc-locks)
+- [空间索引的谓词锁(Predicate Locks for Spatial Indexes)](#空间索引的谓词锁predicate-locks-for-spatial-indexes)
 
 ## 共享锁和排他锁(Shared and Exclusive Locks)
 InnoDB实现标准的行级锁定，其中有两种类型的锁： 共享（S）锁和排他（X）锁。
@@ -32,12 +32,12 @@ InnoDB实现标准的行级锁定，其中有两种类型的锁： 共享（S）
 
 如果事务T1在r行拥有独占（X）锁，则不能立即批准某个不同事务T2对r上任一类型的锁的请求。相反，事务T2必须等待事务T1释放对r行的锁定。
 
-<mark><u>注：共享锁之间不互斥，简记为：读读可以并行。排他锁与任何锁互斥，简记为：写读，写写不可以并行。</u></mark>
+**<mark>注：共享锁之间不互斥，简记为：读读可以并行。排他锁与任何锁互斥，简记为：写读，写写不可以并行。</mark>**
 
 ## 意向锁(Intention Locks)
-InnoDB支持多种粒度锁定，允许行锁和表锁并存。例如，<ins>LOCK TABLES ... WRITE</ins>这样的语句在特定表上采用排他锁（X锁）。为了使在多个粒度级别上的锁定变得切实可行，InnoDB使用意图锁。意向锁是表级锁，指示事务稍后对表中的行需要哪种类型的锁（共享锁或排他锁）。有两种类型的意图锁：
-- 意图共享锁（IS）指示一个事务打算在表中每行设置一个共享锁。
-- 意图独占锁（IX）指示一个事务打算在表中每行设置一个排他锁。
+InnoDB支持多种粒度锁定，允许行锁和表锁并存。例如，<ins>LOCK TABLES ... WRITE</ins>这样的语句在特定表上采用排他锁（X锁）。为了使在多个粒度级别上的锁定变得切实可行，InnoDB使用意向锁。意向锁是表级锁，指示事务稍后对表中的行需要哪种类型的锁（共享锁或排他锁）。有两种类型的意向锁：
+- 意向共享锁（IS）指示一个事务打算在表中每行设置一个共享锁。
+- 意向独占锁（IX）指示一个事务打算在表中每行设置一个排他锁。
 
 例如，<ins>SELECT ... FOR SHARE</ins>设置IS锁, <ins>SELECT ... FOR UPDATE</ins>设置IX锁.
 意向锁定协议如下：
@@ -57,7 +57,7 @@ IS | 冲突 | <mark>兼容</mark> | <mark>兼容</mark> | <mark>兼容</mark>
 
 意向锁不会阻止除全表请求（例如<ins>LOCK TABLES ... WRITE</ins>）以外的任何内容。意向锁的主要目的是表明有人正在锁定表中的行，或者打算锁定表中的行。
 
-对于意图锁定事务数据出现类似于在下面<ins>SHOW ENGINE INNODB STATUS</ins>和 InnoDB的监视器输出：
+对于意向锁定事务数据出现类似于在下面<ins>SHOW ENGINE INNODB STATUS</ins>和 InnoDB的监视器输出：
 ```sql
 TABLE LOCK table `test`.`t` trx id 10080 lock mode IX
 ```
@@ -129,7 +129,7 @@ Record lock, heap no 2 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
 ```
 
 ## 插入意向锁(Insert Intention Locks)
-插入意图锁是由 INSERT 操作在插入行之前设置的一种间隙锁。 这个锁标志着插入的意向，以这样的方式，插入到同一索引间隙中的多个事务如果没有插入到间隙中的同一位置，则不需要彼此等待。假设有值为4和7的索引记录。 尝试插入值5和6的独立事务，每个事务在获得插入行的独占锁之前用插入意向锁锁锁定4和7之间的间隙，但不会阻塞彼此，因为行之间没有冲突。
+插入意向锁是由 INSERT 操作在插入行之前设置的一种间隙锁。 这个锁标志着插入的意向，以这样的方式，插入到同一索引间隙中的多个事务如果没有插入到间隙中的同一位置，则不需要彼此等待。假设有值为4和7的索引记录。 尝试插入值5和6的独立事务，每个事务在获得插入行的独占锁之前用插入意向锁锁锁定4和7之间的间隙，但不会阻塞彼此，因为行之间没有冲突。
 
 下面的示例演示在获取所插入记录的独占锁之前使用插入意向锁的事务。这个例子涉及到两个客户端，A和B。
 
@@ -147,12 +147,12 @@ mysql> SELECT * FROM child WHERE id > 100 FOR UPDATE;
 | 102 |
 +-----+
 ```
-客户端B开始一个事务，将一个记录插入到间隙中。事务在等待获取排他锁时接受插入意图锁。
+客户端B开始一个事务，将一个记录插入到间隙中。事务在等待获取排他锁时接受插入意向锁。
 ```sql
 mysql> START TRANSACTION;
 mysql> INSERT INTO child (id) VALUES (101);
 ```
-插入意图锁的事务数据类似于 <ins>SHOW ENGINE INNODB STATUS</ins> 和 INNODB 监视器输出中的以下内容:
+插入意向锁的事务数据类似于 <ins>SHOW ENGINE INNODB STATUS</ins> 和 INNODB 监视器输出中的以下内容:
 ```
 RECORD LOCKS space id 31 page no 3 n bits 72 index `PRIMARY` of table `test`.`child`
 trx id 8731 lock_mode X locks gap before rec insert intention waiting
@@ -174,4 +174,5 @@ Innodb 支持对包含空间列的列进行 SPATIAL 索引。
 为了处理与 SPATIAL 索引有关的操作的锁定，邻键锁定不能很好地支持 <ins>REPEATABLE READ</ins> 或 <ins>SERIALIZABLE</ins> 事务隔离级别。 多维数据中没有绝对排序概念，因此不清楚哪个是邻键。
 
 为了支持具有 SPATIAL 索引的表的隔离级别，InnoDB使用谓词锁。空间索引包含最小外接矩形值，因此 InnoDB 通过在用于查询的 MBR 值上设置谓词锁来强制对索引进行一致性读。 其他事务不能插入或修改与查询条件匹配的行。
+
 
